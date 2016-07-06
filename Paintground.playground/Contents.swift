@@ -14,11 +14,6 @@ class DemoView: UIView {
             UIColor.blackColor().setStroke()
             path.stroke()
         }
-//        let path = UIBezierPath()
-//        path.moveToPoint(centerPoint)
-//        for i in 1...24 {
-//            
-//        }
     }
     
 }
