@@ -5,8 +5,8 @@ import XCPlayground
 
 class InteractiveGraphView: UIView {
 	
-	/// How many dimensions in the graph
-	var dimensionNumber: Int = 8
+    /// Dimensions
+    var dimensions: [String] = ["回味", "苦", "干", "黏", "冷", "酸", "湿", "涩"]
 	
 	/// Max score allowed
 	var maxScore: Int = 5
@@ -35,12 +35,12 @@ class InteractiveGraphView: UIView {
 	}
 	
     override func drawRect(rect: CGRect) {
-		let piSegment = 2.0*M_PI/Double(dimensionNumber)
+		let piSegment = 2.0*M_PI/Double(dimensions.count)
 		underlyingGraphViewColor.setFill()
 		underlyingGraphViewColor.setStroke()
 		
 		// Draw the underlying graph & Fill in definedPoint array
-		for i in 0..<dimensionNumber {
+		for i in 0..<dimensions.count {
 			let degree = piSegment*Double(i)
 			var scorePoints: [UIBezierPath] = []
 			for j in 0..<maxScore {
@@ -63,7 +63,7 @@ class InteractiveGraphView: UIView {
 				}
 				
 				// Draw connecting circle
-				if i == dimensionNumber-1 {
+				if i == dimensions.count-1 {
 					let connectingCircle = UIBezierPath(arcCenter: centerPoint, radius: radius, startAngle: 0, endAngle: CGFloat(2*M_PI), clockwise: true)
 					connectingCircle.lineWidth = 2
 					connectingCircle.stroke()
