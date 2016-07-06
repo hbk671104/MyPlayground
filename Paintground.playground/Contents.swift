@@ -11,8 +11,11 @@ class InteractiveGraphView: UIView {
 	/// Max score allowed
 	var maxScore: Int = 5
 	
+	/// Underlying graph stroke and fill color
+	var underlyingGraphViewColor: UIColor = UIColor.blackColor()
+	
 	/// Two-dimensional array that stores interactive points
-	private var definedPoints: [[CGPoint]] = []
+	private var definedPoints: [[UIBezierPath]] = []
 	
 	/// The radius of the smallest circle
 	private var innerCircleRadius: CGFloat = 0
@@ -33,23 +36,24 @@ class InteractiveGraphView: UIView {
 	
     override func drawRect(rect: CGRect) {
 		let piSegment = 2.0*M_PI/Double(dimensionNumber)
-		UIColor.blackColor().setFill()
-		UIColor.blackColor().setStroke()
+		underlyingGraphViewColor.setFill()
+		underlyingGraphViewColor.setStroke()
 		
-		// Draw the underlying graph
+		// Draw the underlying graph & Fill in definedPoint array
 		for i in 0..<dimensionNumber {
 			let degree = piSegment*Double(i)
-			var scorePoints: [CGPoint] = []
+			var scorePoints: [UIBezierPath] = []
 			for j in 0..<maxScore {
 				let radius = CGFloat(j+1)*innerCircleRadius
 				let x = radius*CGFloat(cos(degree))
 				let y = radius*CGFloat(sin(degree))
 				let point = CGPointMake(centerPoint.x+x, centerPoint.y+y)
-				scorePoints.append(point)
 				
 				// Draw selection circle and connecting lines
 				let selectionCircle = UIBezierPath(arcCenter: point, radius: 5, startAngle: 0, endAngle: CGFloat(2*M_PI), clockwise: true)
-				selectionCircle.fill()
+				selectionCircle.lineWidth = 2
+				selectionCircle.stroke()
+				scorePoints.append(selectionCircle)
 				if j == maxScore-1 {
 					let connectingLine = UIBezierPath()
 					connectingLine.lineWidth = 2
@@ -57,6 +61,7 @@ class InteractiveGraphView: UIView {
 					connectingLine.addLineToPoint(point)
 					connectingLine.stroke()
 				}
+				
 				// Draw connecting circle
 				if i == dimensionNumber-1 {
 					let connectingCircle = UIBezierPath(arcCenter: centerPoint, radius: radius, startAngle: 0, endAngle: CGFloat(2*M_PI), clockwise: true)
@@ -65,6 +70,14 @@ class InteractiveGraphView: UIView {
 				}
 			}
 			definedPoints.append(scorePoints)
+		}
+		
+		// Hollow the selection circle
+		UIColor.whiteColor().setFill()
+		for dimension in definedPoints {
+			for selectionPoint in dimension {
+				selectionPoint.fill()
+			}
 		}
     }
     
