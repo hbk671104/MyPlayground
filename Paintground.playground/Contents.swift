@@ -6,7 +6,7 @@ import XCPlayground
 class InteractiveGraphView: UIView {
 	
 	/// How many dimensions in the graph
-	var dimensionNumber: Int = 24
+	var dimensionNumber: Int = 8
 	
 	/// Max score allowed
 	var maxScore: Int = 5
