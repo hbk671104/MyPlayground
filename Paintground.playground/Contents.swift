@@ -35,6 +35,11 @@ struct GraphUtil {
 	
 }
 
+class InteractiveView: UIView {
+	
+	
+}
+
 class InteractiveGraphView: UIView {
 	
     /// Dimensions
@@ -44,7 +49,10 @@ class InteractiveGraphView: UIView {
 	var maxScore: Int!
 	
 	/// Selected score
-	var selectedScore: [Int]!
+	var selectedScores: [Int]!
+	
+	/// Selected path
+	private var selectedPath: [UIBezierPath] = []
 	
 	/// Two-dimensional array that stores interactive points
 	private var definedPoints: [[UIBezierPath]] = []
@@ -59,7 +67,7 @@ class InteractiveGraphView: UIView {
 	     sideLength: CGFloat,
 	     dimensions: [String] = ["回味", "苦", "干", "黏", "冷", "酸", "湿", "涩"],
 	     maxScore: Int = 5,
-	     selectedScore: [Int] = []) {
+	     selectedScores: [Int] = []) {
 		super.init(frame: CGRectMake(origin.x, origin.y, sideLength, sideLength))
 		
 		// Property setup
@@ -67,13 +75,13 @@ class InteractiveGraphView: UIView {
 		self.maxScore = maxScore
 		centerPoint = CGPointMake(frame.size.height/2, frame.size.width/2)
 		innerCircleRadius = sideLength*0.4/CGFloat(maxScore)
-		if selectedScore.isEmpty {
-			self.selectedScore = [Int](count: dimensions.count, repeatedValue: 0)
+		if selectedScores.isEmpty {
+			self.selectedScores = [Int](count: dimensions.count, repeatedValue: 0)
 		} else {
-			if selectedScore.count != dimensions.count {
+			if selectedScores.count != dimensions.count {
 				assertionFailure("Selected score count should correspond to dimension count!")
 			} else {
-				self.selectedScore = selectedScore
+				self.selectedScores = selectedScores
 			}
 		}
 		
@@ -124,7 +132,7 @@ class InteractiveGraphView: UIView {
 					// Add dimension name label
 					let label = UILabel(frame: CGRectMake(point.x-30, point.y-10, 60, 20))
 					label.textAlignment = .Center
-					label.font = UIFont.boldSystemFontOfSize(25.0)
+					label.font = UIFont.systemFontOfSize(25.0)
 					label.text = dimensions[i]
 					self.addSubview(label)
 				}
@@ -139,15 +147,27 @@ class InteractiveGraphView: UIView {
 				selectionPoint.fill()
 			}
 		}
+		
+		/// Draw selected path
+		UIColor.blackColor().setFill()
+		UIColor.blueColor().setStroke()
+		for selectedScore in selectedScores {
+			if selectedScore >= 1 {
+				let selectedPoint = definedPoints[selectedScores.indexOf(selectedScore)!][selectedScore-1].currentPoint
+				let selectedCircle = UIBezierPath(arcCenter: selectedPoint, radius: 5, startAngle: 0, endAngle: CGFloat(2*M_PI), clockwise: true)
+				selectedCircle.fill()
+			}
+		}
     }
 	
 	override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
 		let touchPoint = touches.first?.locationInView(self)
 		let nearestIndices = GraphUtil.nearestDefinedPointIndices(touchPoint!, definedPoints: definedPoints, centerPoint: centerPoint)
-		selectedScore[nearestIndices.dimension] = nearestIndices.score+1
-		print(selectedScore)
+		selectedScores[nearestIndices.dimension] = nearestIndices.score+1
+		print(selectedScores)
+		setNeedsDisplay()
 	}
-    
+	
 }
 
 XCPlaygroundPage.currentPage.liveView = InteractiveGraphView(origin: CGPointZero, sideLength: 800)
