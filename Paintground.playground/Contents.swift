@@ -9,7 +9,7 @@ struct GraphUtil {
 		return sqrt(pow(point1.x-point2.x, 2)+pow(point1.y-point2.y, 2))
 	}
 	
-	static func nearestDefinedPointIndices(touchedPoint: CGPoint, definedPoints: [[UIBezierPath]]) -> (dimension: Int, score: Int) {
+	static func nearestDefinedPointIndices(touchedPoint: CGPoint, definedPoints: [[UIBezierPath]], centerPoint: CGPoint) -> (dimension: Int, score: Int) {
 		var shortestDistance: CGFloat = 0
 		var dimensionIndex: Int = 0
 		var scoreIndex: Int = 0
@@ -27,6 +27,9 @@ struct GraphUtil {
 				}
 			}
 		}
+		if shortestDistance > distanceBetweenPoints(touchedPoint, point2: centerPoint) {
+			return (dimensionIndex, -1)
+		}
 		return (dimensionIndex, scoreIndex)
 	}
 	
@@ -41,7 +44,7 @@ class InteractiveGraphView: UIView {
 	var maxScore: Int = 5
 	
 	/// Selected score
-	var selectedScore: [[Int]] = []
+	var selectedScore: [Int]!
 	
 	/// Underlying graph stroke and fill color
 	var underlyingGraphViewColor: UIColor = UIColor.blackColor()
@@ -62,6 +65,7 @@ class InteractiveGraphView: UIView {
 		backgroundColor = UIColor.whiteColor()
 		centerPoint = CGPointMake(frame.size.height/2, frame.size.width/2)
 		innerCircleRadius = sideLength*0.4/CGFloat(maxScore)
+		selectedScore = [Int](count: dimensions.count, repeatedValue: 0)
 	}
 	
 	required init(coder aDecoder: NSCoder) {
@@ -126,8 +130,9 @@ class InteractiveGraphView: UIView {
 	
 	override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
 		let touchPoint = touches.first?.locationInView(self)
-		let nearestIndices = GraphUtil.nearestDefinedPointIndices(touchPoint!, definedPoints: definedPoints)
-		print(nearestIndices)
+		let nearestIndices = GraphUtil.nearestDefinedPointIndices(touchPoint!, definedPoints: definedPoints, centerPoint: centerPoint)
+		selectedScore[nearestIndices.dimension] = nearestIndices.score+1
+		print(selectedScore)
 	}
     
 }
