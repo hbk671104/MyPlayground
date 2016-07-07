@@ -37,6 +37,53 @@ struct GraphUtil {
 
 class InteractiveView: UIView {
 	
+	/// Selected score
+	var selectedScores: [Int]!
+	
+	/// Selected path
+	private var selectedPath: [UIBezierPath] = []
+	
+	/// Two-dimensional array that stores interactive points
+	private var definedPoints: [[UIBezierPath]] = []
+	
+	/// Frame center point
+	private var centerPoint: CGPoint!
+	
+	init(frame: CGRect, selectedScores: [Int]) {
+		super.init(frame: frame)
+		// Custom init
+		self.selectedScores = selectedScores
+		
+		// View setup
+		backgroundColor = UIColor.clearColor()
+	}
+	
+	required init(coder aDecoder: NSCoder) {
+		fatalError("This class does not support NSCoding")
+	}
+	
+	override func drawRect(rect: CGRect) {
+		/// Draw selected path
+		UIColor.blackColor().setFill()
+		UIColor.blueColor().setStroke()
+		for i in 0..<selectedScores.count {
+			let selectedScore = selectedScores[i]
+			if selectedScore >= 1 {
+				let selectedPoint = definedPoints[i][selectedScore-1].currentPoint
+				let selectedCircle = UIBezierPath(arcCenter: selectedPoint, radius: 5, startAngle: 0, endAngle: CGFloat(2*M_PI), clockwise: true)
+				selectedCircle.lineWidth = 2
+				selectedCircle.fill()
+			}
+		}
+	}
+	
+	override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
+		let touchPoint = touches.first?.locationInView(self)
+		let nearestIndices = GraphUtil.nearestDefinedPointIndices(touchPoint!, definedPoints: definedPoints, centerPoint: centerPoint)
+		selectedScores[nearestIndices.dimension] = nearestIndices.score+1
+		print(selectedScores)
+		setNeedsDisplay()
+	}
 	
 }
 
@@ -48,12 +95,6 @@ class InteractiveGraphView: UIView {
 	/// Max score allowed
 	var maxScore: Int!
 	
-	/// Selected score
-	var selectedScores: [Int]!
-	
-	/// Selected path
-	private var selectedPath: [UIBezierPath] = []
-	
 	/// Two-dimensional array that stores interactive points
 	private var definedPoints: [[UIBezierPath]] = []
 	
@@ -62,6 +103,9 @@ class InteractiveGraphView: UIView {
 	
 	/// Frame center point
 	private var centerPoint: CGPoint!
+	
+	/// Interactive view
+	private var interactiveView: InteractiveView!
 	
 	init(origin: CGPoint,
 	     sideLength: CGFloat,
@@ -75,17 +119,23 @@ class InteractiveGraphView: UIView {
 		self.maxScore = maxScore
 		centerPoint = CGPointMake(frame.size.height/2, frame.size.width/2)
 		innerCircleRadius = sideLength*0.4/CGFloat(maxScore)
+		// Selected score init
+		var scores: [Int]!
 		if selectedScores.isEmpty {
-			self.selectedScores = [Int](count: dimensions.count, repeatedValue: 0)
+			scores = [Int](count: dimensions.count, repeatedValue: 0)
 		} else {
 			if selectedScores.count != dimensions.count {
 				assertionFailure("Selected score count should correspond to dimension count!")
 			} else {
-				self.selectedScores = selectedScores
+				scores = selectedScores
 			}
 		}
 		
 		// View setup
+		interactiveView = InteractiveView(frame: self.frame, selectedScores: scores)
+		interactiveView.userInteractionEnabled = true
+		interactiveView.centerPoint = centerPoint
+		self.addSubview(interactiveView)
 		backgroundColor = UIColor.whiteColor()
 	}
 	
@@ -148,26 +198,12 @@ class InteractiveGraphView: UIView {
 			}
 		}
 		
-		/// Draw selected path
-		UIColor.blackColor().setFill()
-		UIColor.blueColor().setStroke()
-		for selectedScore in selectedScores {
-			if selectedScore >= 1 {
-				let selectedPoint = definedPoints[selectedScores.indexOf(selectedScore)!][selectedScore-1].currentPoint
-				let selectedCircle = UIBezierPath(arcCenter: selectedPoint, radius: 5, startAngle: 0, endAngle: CGFloat(2*M_PI), clockwise: true)
-				selectedCircle.fill()
-			}
+		// Pass in defined points
+		if interactiveView.definedPoints.isEmpty {
+			interactiveView.definedPoints = definedPoints
 		}
     }
 	
-	override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
-		let touchPoint = touches.first?.locationInView(self)
-		let nearestIndices = GraphUtil.nearestDefinedPointIndices(touchPoint!, definedPoints: definedPoints, centerPoint: centerPoint)
-		selectedScores[nearestIndices.dimension] = nearestIndices.score+1
-		print(selectedScores)
-		setNeedsDisplay()
-	}
-	
 }
 
-XCPlaygroundPage.currentPage.liveView = InteractiveGraphView(origin: CGPointZero, sideLength: 800)
+XCPlaygroundPage.currentPage.liveView = InteractiveGraphView(origin: CGPointZero, sideLength: 800, selectedScores: [1, 2, 3, 4, 2, 3, 3, 2])
