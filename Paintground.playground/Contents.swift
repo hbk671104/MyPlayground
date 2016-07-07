@@ -38,34 +38,47 @@ struct GraphUtil {
 class InteractiveGraphView: UIView {
 	
     /// Dimensions
-    var dimensions: [String] = ["回味", "苦", "干", "黏", "冷", "酸", "湿", "涩"]
+    var dimensions: [String]!
 	
 	/// Max score allowed
-	var maxScore: Int = 5
+	var maxScore: Int!
 	
 	/// Selected score
 	var selectedScore: [Int]!
-	
-	/// Underlying graph stroke and fill color
-	var underlyingGraphViewColor: UIColor = UIColor.blackColor()
 	
 	/// Two-dimensional array that stores interactive points
 	private var definedPoints: [[UIBezierPath]] = []
 	
 	/// The radius of the smallest circle
-	private var innerCircleRadius: CGFloat = 0
+	private var innerCircleRadius: CGFloat!
 	
 	/// Frame center point
 	private var centerPoint: CGPoint!
 	
-	init(origin: CGPoint, sideLength: CGFloat) {
+	init(origin: CGPoint,
+	     sideLength: CGFloat,
+	     dimensions: [String] = ["回味", "苦", "干", "黏", "冷", "酸", "湿", "涩"],
+	     maxScore: Int = 5,
+	     selectedScore: [Int] = []) {
 		super.init(frame: CGRectMake(origin.x, origin.y, sideLength, sideLength))
+		
+		// Property setup
+		self.dimensions = dimensions
+		self.maxScore = maxScore
+		centerPoint = CGPointMake(frame.size.height/2, frame.size.width/2)
+		innerCircleRadius = sideLength*0.4/CGFloat(maxScore)
+		if selectedScore.isEmpty {
+			self.selectedScore = [Int](count: dimensions.count, repeatedValue: 0)
+		} else {
+			if selectedScore.count != dimensions.count {
+				assertionFailure("Selected score count should correspond to dimension count!")
+			} else {
+				self.selectedScore = selectedScore
+			}
+		}
 		
 		// View setup
 		backgroundColor = UIColor.whiteColor()
-		centerPoint = CGPointMake(frame.size.height/2, frame.size.width/2)
-		innerCircleRadius = sideLength*0.4/CGFloat(maxScore)
-		selectedScore = [Int](count: dimensions.count, repeatedValue: 0)
 	}
 	
 	required init(coder aDecoder: NSCoder) {
@@ -74,8 +87,8 @@ class InteractiveGraphView: UIView {
 	
     override func drawRect(rect: CGRect) {
 		let piSegment = 2.0*M_PI/Double(dimensions.count)
-		underlyingGraphViewColor.setFill()
-		underlyingGraphViewColor.setStroke()
+		UIColor.blackColor().setFill()
+		UIColor.blackColor().setStroke()
 		
 		// Draw the underlying graph & Fill in definedPoint array
 		for i in 0..<dimensions.count {
