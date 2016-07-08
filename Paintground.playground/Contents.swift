@@ -101,15 +101,27 @@ class InteractiveView: InteractiveGraphView {
 				centerPath.addLineToPoint(center)
 				centerPath.stroke()
 				// Margin Path
+				UIColor.orangeColor().colorWithAlphaComponent(0.75).setFill()
 				if i == selectedScores.count-1 {
-					
+					let score = selectedScores[0]
+					if score >= 1 {
+						let selectedPoint = definedPoints[0][score-1].currentPoint
+						// TODO: There's been a tiny right shift on x-axis, which is confusing, seriously
+						let adjacentPoint = CGPointMake(selectedPoint.x-5, selectedPoint.y)
+						let marginPath = UIBezierPath()
+						marginPath.lineWidth = 8
+						marginPath.moveToPoint(actualPoint)
+						marginPath.addLineToPoint(adjacentPoint)
+						marginPath.addLineToPoint(center)
+						marginPath.closePath()
+						marginPath.fill()
+					}
 				} else {
 					let score = selectedScores[i+1]
 					if score >= 1 {
 						let selectedPoint = definedPoints[i+1][score-1].currentPoint
 						// TODO: There's been a tiny right shift on x-axis, which is confusing, seriously
 						let adjacentPoint = CGPointMake(selectedPoint.x-5, selectedPoint.y)
-						UIColor.orangeColor().colorWithAlphaComponent(0.75).setFill()
 						let marginPath = UIBezierPath()
 						marginPath.lineWidth = 8
 						marginPath.moveToPoint(actualPoint)
