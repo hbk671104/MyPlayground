@@ -125,11 +125,11 @@ class InteractiveGraphView: UIView {
 		}
 		
 		// View setup
-		interactiveView = InteractiveView(frame: self.frame, selectedScores: scores)
+		backgroundColor = UIColor.whiteColor()
+		interactiveView = InteractiveView(frame: self.bounds, selectedScores: scores)
 		interactiveView.userInteractionEnabled = true
 		interactiveView.centerPoint = centerPoint
 		self.addSubview(interactiveView)
-		backgroundColor = UIColor.whiteColor()
 	}
 	
 	override init(frame: CGRect) {
