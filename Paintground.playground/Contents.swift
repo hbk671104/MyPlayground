@@ -98,7 +98,7 @@ class InteractiveView: InteractiveGraphView {
 				let centerPath = UIBezierPath()
 				centerPath.lineWidth = 8
 				centerPath.moveToPoint(actualPoint)
-				centerPath.addLineToPoint(centerPoint)
+				centerPath.addLineToPoint(center)
 				centerPath.stroke()
 				// Margin Path
 				if i == selectedScores.count-1 {
@@ -130,7 +130,7 @@ class InteractiveView: InteractiveGraphView {
 	
 	override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
 		let touchPoint = touches.first?.locationInView(self)
-		let nearestIndices = GraphUtil.nearestDefinedPointIndices(touchPoint!, definedPoints: definedPoints, centerPoint: centerPoint)
+		let nearestIndices = GraphUtil.nearestDefinedPointIndices(touchPoint!, definedPoints: definedPoints, centerPoint: center)
 		// Pass in lastestSelectedIndices
 		latestSelectedIndices = nearestIndices
 		selectedScores[latestSelectedIndices.dimension] = latestSelectedIndices.score+1
@@ -139,7 +139,7 @@ class InteractiveView: InteractiveGraphView {
 	
 	override func touchesMoved(touches: Set<UITouch>, withEvent event: UIEvent?) {
 		let touchPoint = touches.first?.locationInView(self)
-		let scoreIndex = GraphUtil.nearestDefinedPointScoreOnDimension(touchPoint!, dimension: definedPoints[latestSelectedIndices.dimension], centerPoint: centerPoint)
+		let scoreIndex = GraphUtil.nearestDefinedPointScoreOnDimension(touchPoint!, dimension: definedPoints[latestSelectedIndices.dimension], centerPoint: center)
 		selectedScores[latestSelectedIndices.dimension] = scoreIndex+1
 		setNeedsDisplay()
 	}
@@ -160,9 +160,6 @@ class InteractiveGraphView: UIView {
 	/// The radius of the smallest circle
 	private var innerCircleRadius: CGFloat!
 	
-	/// Frame center point
-	private var centerPoint: CGPoint!
-	
 	/// Interactive view
 	private var interactiveView: InteractiveView!
 	
@@ -176,7 +173,6 @@ class InteractiveGraphView: UIView {
 		// Property setup
 		self.dimensions = dimensions
 		self.maxScore = maxScore
-		centerPoint = CGPointMake(frame.size.height/2, frame.size.width/2)
 		innerCircleRadius = sideLength*0.4/CGFloat(maxScore)
 		// Selected score init
 		var scores: [Int]!
@@ -194,7 +190,6 @@ class InteractiveGraphView: UIView {
 		backgroundColor = UIColor.whiteColor()
 		interactiveView = InteractiveView(frame: self.bounds, selectedScores: scores)
 		interactiveView.userInteractionEnabled = true
-		interactiveView.centerPoint = centerPoint
 		self.addSubview(interactiveView)
 	}
 	
@@ -219,7 +214,7 @@ class InteractiveGraphView: UIView {
 				let radius = j != maxScore ? (CGFloat(j)+1)*innerCircleRadius : (CGFloat(j)+0.5)*innerCircleRadius
 				let x = radius*CGFloat(cos(degree))
 				let y = radius*CGFloat(sin(degree))
-				let point = CGPointMake(centerPoint.x+x, centerPoint.y+y)
+				let point = CGPointMake(center.x+x, center.y+y)
 				
 				if j != maxScore {
 					// Draw selection circle and connecting lines
@@ -230,14 +225,14 @@ class InteractiveGraphView: UIView {
 					if j == maxScore-1 {
 						let connectingLine = UIBezierPath()
 						connectingLine.lineWidth = 2
-						connectingLine.moveToPoint(centerPoint)
+						connectingLine.moveToPoint(center)
 						connectingLine.addLineToPoint(point)
 						connectingLine.stroke()
 					}
 					
 					// Draw connecting circle
 					if i == dimensions.count-1 {
-						let connectingCircle = UIBezierPath(arcCenter: centerPoint, radius: radius, startAngle: 0, endAngle: CGFloat(2*M_PI), clockwise: true)
+						let connectingCircle = UIBezierPath(arcCenter: center, radius: radius, startAngle: 0, endAngle: CGFloat(2*M_PI), clockwise: true)
 						connectingCircle.lineWidth = 2
 						connectingCircle.stroke()
 					}
