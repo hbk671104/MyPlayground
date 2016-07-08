@@ -56,15 +56,24 @@ class InteractiveView: InteractiveGraphView {
 	var selectedScores: [Int]!
 	
 	/// Selected path
-	private var selectedPath: [UIBezierPath] = []
+	private var selectedPath: [PathCombo]!
 	
 	/// Lastest selected indices
-	private var latestSelectedIndices: (dimension: Int, score: Int) = (0, -1)
+	private var latestSelectedIndices: (dimension: Int, score: Int)!
+	
+	/// Path Combo
+	private struct PathCombo {
+		/// Left conneting path
+		var marginPath: UIBezierPath?
+		var selectedCircle: UIBezierPath!
+		var centerPath: UIBezierPath!
+	}
 	
 	init(frame: CGRect, selectedScores: [Int]) {
 		super.init(frame: frame)
 		// Custom init
 		self.selectedScores = selectedScores
+		selectedPath = [PathCombo](count: selectedScores.count, repeatedValue: PathCombo())
 		
 		// View setup
 		backgroundColor = UIColor.clearColor()
@@ -87,15 +96,33 @@ class InteractiveView: InteractiveGraphView {
 				let actualPoint = CGPointMake(selectedPoint.x-5, selectedPoint.y)
 				
 				// Connected path
-				let connectingPath = UIBezierPath()
-				connectingPath.lineWidth = 8
-				connectingPath.moveToPoint(actualPoint)
-				connectingPath.addLineToPoint(centerPoint)
-				connectingPath.stroke()
+				let centerPath = UIBezierPath()
+				centerPath.lineWidth = 8
+				centerPath.moveToPoint(actualPoint)
+				centerPath.addLineToPoint(centerPoint)
+				centerPath.stroke()
 				// Selected circle
 				let selectedCircle = UIBezierPath(arcCenter: actualPoint, radius: 5, startAngle: 0, endAngle: CGFloat(2*M_PI), clockwise: true)
 				selectedCircle.lineWidth = 2
 				selectedCircle.fill()
+				// Margin Path
+				if i == selectedScores.count-1 {
+					
+				} else {
+					let score = selectedScores[i+1]
+					if score >= 1 {
+						let selectedPoint = definedPoints[i+1][score-1].currentPoint
+						// TODO: There's been a tiny right shift on x-axis, which is confusing, seriously
+						let adjacentPoint = CGPointMake(selectedPoint.x-5, selectedPoint.y)
+						let marginPath = UIBezierPath()
+						marginPath.lineWidth = 8
+						marginPath.moveToPoint(actualPoint)
+						marginPath.addLineToPoint(adjacentPoint)
+						marginPath.addLineToPoint(center)
+						marginPath.closePath()
+						marginPath.fill()
+					}
+				}
 			}
 		}
 	}
