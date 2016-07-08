@@ -95,7 +95,7 @@ class InteractiveView: InteractiveGraphView {
 				let actualPoint = CGPointMake(selectedPoint.x-5, selectedPoint.y)
 				
 				// Margin Path
-			UIColor.orangeColor().colorWithAlphaComponent(0.75).setFill()
+				UIColor.orangeColor().colorWithAlphaComponent(0.75).setFill()
 				if i == selectedScores.count-1 {
 					let score = selectedScores[0]
 					if score >= 1 {
@@ -133,7 +133,7 @@ class InteractiveView: InteractiveGraphView {
 				centerPath.stroke()
 				// Selected circle
 				UIColor.blackColor().setFill()
-				let selectedCircle = UIBezierPath(arcCenter: actualPoint, radius: 5, startAngle: 0, endAngle: CGFloat(2*M_PI), clockwise: true)
+				let selectedCircle = UIBezierPath(arcCenter: actualPoint, radius: 10, startAngle: 0, endAngle: CGFloat(2*M_PI), clockwise: true)
 				selectedCircle.lineWidth = 2
 				selectedCircle.fill()
 			}
