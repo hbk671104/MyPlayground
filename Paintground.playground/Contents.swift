@@ -10,21 +10,28 @@ struct GraphUtil {
 	}
 	
 	static func nearestDefinedPointIndices(touchedPoint: CGPoint, definedPoints: [[UIBezierPath]], centerPoint: CGPoint) -> (dimension: Int, score: Int) {
-		var shortestDistance = distanceBetweenPoints(touchedPoint, point2: centerPoint)
+		var shortestDistance: CGFloat = 0
 		var dimensionIndex = 0
-		var scoreIndex = -1
+		var scoreIndex = 0
 		for d in 0..<definedPoints.count {
 			let dimension = definedPoints[d]
 			for s in 0..<dimension.count {
-				let distance = distanceBetweenPoints(dimension[s].currentPoint, point2: touchedPoint)
-				if distance < shortestDistance {
-					shortestDistance = distance
-					dimensionIndex = d
-					scoreIndex = s
+				let point = dimension[s].currentPoint
+				if shortestDistance != 0 {
+					let distance = distanceBetweenPoints(point, point2: touchedPoint)
+					if distance < shortestDistance {
+						shortestDistance = distance
+						dimensionIndex = d
+						scoreIndex = s
+					}
+				} else {
+					shortestDistance = distanceBetweenPoints(point, point2: touchedPoint)
 				}
 			}
 		}
-		print(scoreIndex)
+		if shortestDistance > distanceBetweenPoints(touchedPoint, point2: centerPoint) {
+			return (dimensionIndex, -1)
+		}
 		return (dimensionIndex, scoreIndex)
 	}
 	
@@ -98,7 +105,7 @@ class InteractiveView: InteractiveGraphView {
 		let nearestIndices = GraphUtil.nearestDefinedPointIndices(touchPoint!, definedPoints: definedPoints, centerPoint: centerPoint)
 		// Pass in lastestSelectedIndices
 		latestSelectedIndices = nearestIndices
-		selectedScores[nearestIndices.dimension] = nearestIndices.score+1
+		selectedScores[latestSelectedIndices.dimension] = latestSelectedIndices.score+1
 		setNeedsDisplay()
 	}
 	
