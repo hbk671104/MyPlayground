@@ -6,31 +6,39 @@ import XCPlayground
 struct GraphUtil {
 	
 	private static func distanceBetweenPoints(point1: CGPoint, point2: CGPoint) -> CGFloat {
-		return sqrt(pow(point1.x-point2.x, 2)+pow(point1.y-point2.y, 2))
+		return hypot(point1.x-point2.x, point1.y-point2.y)
 	}
 	
 	static func nearestDefinedPointIndices(touchedPoint: CGPoint, definedPoints: [[UIBezierPath]], centerPoint: CGPoint) -> (dimension: Int, score: Int) {
-		var shortestDistance: CGFloat = 0
-		var dimensionIndex: Int = 0
-		var scoreIndex: Int = 0
-		for dimension in definedPoints {
-			for score in dimension {
-				if shortestDistance != 0 {
-					let distance = distanceBetweenPoints(score.currentPoint, point2: touchedPoint)
-					if distance < shortestDistance {
-						shortestDistance = distance
-						dimensionIndex = definedPoints.indexOf({$0 == dimension})!
-						scoreIndex = dimension.indexOf(score)!
-					}
-				} else {
-					shortestDistance = distanceBetweenPoints(score.currentPoint, point2: touchedPoint)
+		var shortestDistance = distanceBetweenPoints(touchedPoint, point2: centerPoint)
+		var dimensionIndex = 0
+		var scoreIndex = -1
+		for d in 0..<definedPoints.count {
+			let dimension = definedPoints[d]
+			for s in 0..<dimension.count {
+				let distance = distanceBetweenPoints(dimension[s].currentPoint, point2: touchedPoint)
+				if distance < shortestDistance {
+					shortestDistance = distance
+					dimensionIndex = d
+					scoreIndex = s
 				}
 			}
 		}
-		if shortestDistance > distanceBetweenPoints(touchedPoint, point2: centerPoint) {
-			return (dimensionIndex, -1)
-		}
+		print(scoreIndex)
 		return (dimensionIndex, scoreIndex)
+	}
+	
+	static func nearestDefinedPointScoreOnDimension(touchedPoint: CGPoint, dimension: [UIBezierPath], centerPoint: CGPoint) -> Int {
+		var shortestDistance = distanceBetweenPoints(touchedPoint, point2: centerPoint)
+		var score = -1
+		for d in 0..<dimension.count {
+			let distance = distanceBetweenPoints(dimension[d].currentPoint, point2: touchedPoint)
+			if distance < shortestDistance {
+				shortestDistance = distance
+				score = d
+			}
+		}
+		return score
 	}
 	
 }
@@ -42,6 +50,9 @@ class InteractiveView: InteractiveGraphView {
 	
 	/// Selected path
 	private var selectedPath: [UIBezierPath] = []
+	
+	/// Lastest selected indices
+	private var latestSelectedIndices: (dimension: Int, score: Int) = (0, -1)
 	
 	init(frame: CGRect, selectedScores: [Int]) {
 		super.init(frame: frame)
@@ -57,14 +68,25 @@ class InteractiveView: InteractiveGraphView {
 	}
 	
 	override func drawRect(rect: CGRect) {
-		/// Draw selected path
 		UIColor.blackColor().setFill()
-		UIColor.blueColor().setStroke()
+		UIColor.orangeColor().colorWithAlphaComponent(0.75).setStroke()
+		
+		// Draw selected path
 		for i in 0..<selectedScores.count {
 			let selectedScore = selectedScores[i]
 			if selectedScore >= 1 {
 				let selectedPoint = definedPoints[i][selectedScore-1].currentPoint
-				let selectedCircle = UIBezierPath(arcCenter: selectedPoint, radius: 5, startAngle: 0, endAngle: CGFloat(2*M_PI), clockwise: true)
+				// TODO: There's been a tiny right shift on x-axis, which is confusing, seriously
+				let actualPoint = CGPointMake(selectedPoint.x-5, selectedPoint.y)
+				
+				// Connected path
+				let connectingPath = UIBezierPath()
+				connectingPath.lineWidth = 8
+				connectingPath.moveToPoint(actualPoint)
+				connectingPath.addLineToPoint(centerPoint)
+				connectingPath.stroke()
+				// Selected circle
+				let selectedCircle = UIBezierPath(arcCenter: actualPoint, radius: 5, startAngle: 0, endAngle: CGFloat(2*M_PI), clockwise: true)
 				selectedCircle.lineWidth = 2
 				selectedCircle.fill()
 			}
@@ -74,7 +96,16 @@ class InteractiveView: InteractiveGraphView {
 	override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
 		let touchPoint = touches.first?.locationInView(self)
 		let nearestIndices = GraphUtil.nearestDefinedPointIndices(touchPoint!, definedPoints: definedPoints, centerPoint: centerPoint)
+		// Pass in lastestSelectedIndices
+		latestSelectedIndices = nearestIndices
 		selectedScores[nearestIndices.dimension] = nearestIndices.score+1
+		setNeedsDisplay()
+	}
+	
+	override func touchesMoved(touches: Set<UITouch>, withEvent event: UIEvent?) {
+		let touchPoint = touches.first?.locationInView(self)
+		let scoreIndex = GraphUtil.nearestDefinedPointScoreOnDimension(touchPoint!, dimension: definedPoints[latestSelectedIndices.dimension], centerPoint: centerPoint)
+		selectedScores[latestSelectedIndices.dimension] = scoreIndex
 		setNeedsDisplay()
 	}
 	
