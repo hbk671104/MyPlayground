@@ -112,7 +112,7 @@ class InteractiveView: InteractiveGraphView {
 	override func touchesMoved(touches: Set<UITouch>, withEvent event: UIEvent?) {
 		let touchPoint = touches.first?.locationInView(self)
 		let scoreIndex = GraphUtil.nearestDefinedPointScoreOnDimension(touchPoint!, dimension: definedPoints[latestSelectedIndices.dimension], centerPoint: centerPoint)
-		selectedScores[latestSelectedIndices.dimension] = scoreIndex
+		selectedScores[latestSelectedIndices.dimension] = scoreIndex+1
 		setNeedsDisplay()
 	}
 	
