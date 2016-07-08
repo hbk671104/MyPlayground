@@ -35,19 +35,13 @@ struct GraphUtil {
 	
 }
 
-class InteractiveView: UIView {
+class InteractiveView: InteractiveGraphView {
 	
 	/// Selected score
 	var selectedScores: [Int]!
 	
 	/// Selected path
 	private var selectedPath: [UIBezierPath] = []
-	
-	/// Two-dimensional array that stores interactive points
-	private var definedPoints: [[UIBezierPath]] = []
-	
-	/// Frame center point
-	private var centerPoint: CGPoint!
 	
 	init(frame: CGRect, selectedScores: [Int]) {
 		super.init(frame: frame)
@@ -81,7 +75,6 @@ class InteractiveView: UIView {
 		let touchPoint = touches.first?.locationInView(self)
 		let nearestIndices = GraphUtil.nearestDefinedPointIndices(touchPoint!, definedPoints: definedPoints, centerPoint: centerPoint)
 		selectedScores[nearestIndices.dimension] = nearestIndices.score+1
-		print(selectedScores)
 		setNeedsDisplay()
 	}
 	
@@ -137,6 +130,10 @@ class InteractiveGraphView: UIView {
 		interactiveView.centerPoint = centerPoint
 		self.addSubview(interactiveView)
 		backgroundColor = UIColor.whiteColor()
+	}
+	
+	override init(frame: CGRect) {
+		super.init(frame: frame)
 	}
 	
 	required init(coder aDecoder: NSCoder) {
