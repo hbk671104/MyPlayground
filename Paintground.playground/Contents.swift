@@ -84,7 +84,6 @@ class InteractiveView: InteractiveGraphView {
 	}
 	
 	override func drawRect(rect: CGRect) {
-		UIColor.blackColor().setFill()
 		UIColor.orangeColor().colorWithAlphaComponent(0.75).setStroke()
 		
 		// Draw selected path
@@ -101,10 +100,6 @@ class InteractiveView: InteractiveGraphView {
 				centerPath.moveToPoint(actualPoint)
 				centerPath.addLineToPoint(centerPoint)
 				centerPath.stroke()
-				// Selected circle
-				let selectedCircle = UIBezierPath(arcCenter: actualPoint, radius: 5, startAngle: 0, endAngle: CGFloat(2*M_PI), clockwise: true)
-				selectedCircle.lineWidth = 2
-				selectedCircle.fill()
 				// Margin Path
 				if i == selectedScores.count-1 {
 					
@@ -114,6 +109,7 @@ class InteractiveView: InteractiveGraphView {
 						let selectedPoint = definedPoints[i+1][score-1].currentPoint
 						// TODO: There's been a tiny right shift on x-axis, which is confusing, seriously
 						let adjacentPoint = CGPointMake(selectedPoint.x-5, selectedPoint.y)
+						UIColor.orangeColor().colorWithAlphaComponent(0.75).setFill()
 						let marginPath = UIBezierPath()
 						marginPath.lineWidth = 8
 						marginPath.moveToPoint(actualPoint)
@@ -123,6 +119,11 @@ class InteractiveView: InteractiveGraphView {
 						marginPath.fill()
 					}
 				}
+				// Selected circle
+				UIColor.blackColor().setFill()
+				let selectedCircle = UIBezierPath(arcCenter: actualPoint, radius: 5, startAngle: 0, endAngle: CGFloat(2*M_PI), clockwise: true)
+				selectedCircle.lineWidth = 2
+				selectedCircle.fill()
 			}
 		}
 	}
