@@ -73,7 +73,6 @@ class InteractiveView: InteractiveGraphView {
 		super.init(frame: frame)
 		// Custom init
 		self.selectedScores = selectedScores
-		selectedPath = [PathCombo](count: selectedScores.count, repeatedValue: PathCombo())
 		
 		// View setup
 		backgroundColor = UIColor.clearColor()
@@ -86,56 +85,17 @@ class InteractiveView: InteractiveGraphView {
 	override func drawRect(rect: CGRect) {
 		UIColor.orangeColor().colorWithAlphaComponent(0.75).setStroke()
 		
+		// Convert
+		selectedPath = self.convertIntoSelectedPath(selectedScores, definedPoints: definedPoints)
 		// Draw selected path
-		for i in 0..<selectedScores.count {
-			let selectedScore = selectedScores[i]
-			if selectedScore >= 1 {
-				let selectedPoint = definedPoints[i][selectedScore-1].currentPoint
-				// TODO: There's been a tiny right shift on x-axis, which is confusing, seriously
-				let actualPoint = CGPointMake(selectedPoint.x-5, selectedPoint.y)
-				
-				// Margin Path
-				UIColor.orangeColor().colorWithAlphaComponent(0.75).setFill()
-				if i == selectedScores.count-1 {
-					let score = selectedScores[0]
-					if score >= 1 {
-						let selectedPoint = definedPoints[0][score-1].currentPoint
-						// TODO: There's been a tiny right shift on x-axis, which is confusing, seriously
-						let adjacentPoint = CGPointMake(selectedPoint.x-5, selectedPoint.y)
-						let marginPath = UIBezierPath()
-						marginPath.lineWidth = 8
-						marginPath.moveToPoint(actualPoint)
-						marginPath.addLineToPoint(adjacentPoint)
-						marginPath.addLineToPoint(center)
-						marginPath.closePath()
-						marginPath.fill()
-					}
-				} else {
-					let score = selectedScores[i+1]
-					if score >= 1 {
-						let selectedPoint = definedPoints[i+1][score-1].currentPoint
-						// TODO: There's been a tiny right shift on x-axis, which is confusing, seriously
-						let adjacentPoint = CGPointMake(selectedPoint.x-5, selectedPoint.y)
-						let marginPath = UIBezierPath()
-						marginPath.lineWidth = 8
-						marginPath.moveToPoint(actualPoint)
-						marginPath.addLineToPoint(adjacentPoint)
-						marginPath.addLineToPoint(center)
-						marginPath.closePath()
-						marginPath.fill()
-					}
-				}
-				// Connected path
-				let centerPath = UIBezierPath()
-				centerPath.lineWidth = 8
-				centerPath.moveToPoint(actualPoint)
-				centerPath.addLineToPoint(center)
-				centerPath.stroke()
-				// Selected circle
-				UIColor.blackColor().setFill()
-				let selectedCircle = UIBezierPath(arcCenter: actualPoint, radius: 10, startAngle: 0, endAngle: CGFloat(2*M_PI), clockwise: true)
-				selectedCircle.lineWidth = 2
-				selectedCircle.fill()
+		for combo in selectedPath {
+			if combo.centerPath != nil {
+				combo.centerPath.stroke()
+			}
+		}
+		for combo in selectedPath {
+			if combo.selectedCircle != nil {
+				combo.selectedCircle.fill()
 			}
 		}
 	}
@@ -152,8 +112,36 @@ class InteractiveView: InteractiveGraphView {
 	override func touchesMoved(touches: Set<UITouch>, withEvent event: UIEvent?) {
 		let touchPoint = touches.first?.locationInView(self)
 		let scoreIndex = GraphUtil.nearestDefinedPointScoreOnDimension(touchPoint!, dimension: definedPoints[latestSelectedIndices.dimension], centerPoint: center)
-		selectedScores[latestSelectedIndices.dimension] = scoreIndex+1
+		// Update latest selected index
+		latestSelectedIndices = (latestSelectedIndices.dimension, scoreIndex)
+		selectedScores[latestSelectedIndices.dimension] = latestSelectedIndices.score+1
 		setNeedsDisplay()
+	}
+	
+	private func convertIntoSelectedPath(selectedScores: [Int], definedPoints: [[UIBezierPath]]) -> [PathCombo] {
+		var pathCombo: [PathCombo] = []
+		for i in 0..<selectedScores.count {
+			var combo = PathCombo()
+			let score = selectedScores[i]
+			if score >= 1 {
+				let selectedPoint = definedPoints[i][score-1].currentPoint
+				// TODO: There's been a tiny right shift on x-axis, which is confusing, seriously
+				let actualPoint = CGPointMake(selectedPoint.x-5, selectedPoint.y)
+				// Connected path
+				let centerPath = UIBezierPath()
+				centerPath.lineWidth = 8
+				centerPath.moveToPoint(actualPoint)
+				centerPath.addLineToPoint(center)
+				// Selected circle
+				let selectedCircle = UIBezierPath(arcCenter: actualPoint, radius: 10, startAngle: 0, endAngle: CGFloat(2*M_PI), clockwise: true)
+				selectedCircle.lineWidth = 2
+				
+				combo.centerPath = centerPath
+				combo.selectedCircle = selectedCircle
+			}
+			pathCombo.append(combo)
+		}
+		return pathCombo
 	}
 	
 }
@@ -276,4 +264,4 @@ class InteractiveGraphView: UIView {
 	
 }
 
-XCPlaygroundPage.currentPage.liveView = InteractiveGraphView(origin: CGPointZero, sideLength: 800, selectedScores: [1, 2, 3, 4, 2, 3, 3, 2])
+XCPlaygroundPage.currentPage.liveView = InteractiveGraphView(origin: CGPointZero, sideLength: 800, selectedScores: [2, 2, 3, 4, 2, 1, 3, 3])
