@@ -84,6 +84,7 @@ class InteractiveView: InteractiveGraphView {
 	
 	override func drawRect(rect: CGRect) {
 		UIColor.orangeColor().colorWithAlphaComponent(0.75).setStroke()
+		UIColor.orangeColor().colorWithAlphaComponent(0.75).setFill()
 		
 		// Convert
 		selectedPath = self.convertIntoSelectedPath(selectedScores, definedPoints: definedPoints)
@@ -92,7 +93,11 @@ class InteractiveView: InteractiveGraphView {
 			if combo.centerPath != nil {
 				combo.centerPath.stroke()
 			}
+			if let marginPath = combo.marginPath {
+				marginPath.fill()
+			}
 		}
+		UIColor.blackColor().setFill()
 		for combo in selectedPath {
 			if combo.selectedCircle != nil {
 				combo.selectedCircle.fill()
@@ -120,6 +125,7 @@ class InteractiveView: InteractiveGraphView {
 	
 	private func convertIntoSelectedPath(selectedScores: [Int], definedPoints: [[UIBezierPath]]) -> [PathCombo] {
 		var pathCombo: [PathCombo] = []
+		var previousPoint: CGPoint!
 		for i in 0..<selectedScores.count {
 			var combo = PathCombo()
 			let score = selectedScores[i]
@@ -127,16 +133,42 @@ class InteractiveView: InteractiveGraphView {
 				let selectedPoint = definedPoints[i][score-1].currentPoint
 				// TODO: There's been a tiny right shift on x-axis, which is confusing, seriously
 				let actualPoint = CGPointMake(selectedPoint.x-5, selectedPoint.y)
+				if i == 0 {
+					let lastScore = selectedScores[selectedScores.count-1]
+					if lastScore >= 1 {
+						let lastSelectedPoint = definedPoints[selectedScores.count-1][lastScore-1].currentPoint
+						previousPoint = CGPointMake(lastSelectedPoint.x-5, lastSelectedPoint.y)
+					} else {
+						previousPoint = nil
+					}
+				} else {
+					let previousScore = selectedScores[i-1]
+					if previousScore >= 1 {
+						let previousSelectedPoint = definedPoints[i-1][previousScore-1].currentPoint
+						previousPoint = CGPointMake(previousSelectedPoint.x-5, previousSelectedPoint.y)
+					} else {
+						previousPoint = nil
+					}
+				}
+				// Margin path
+				if previousPoint != nil {
+					let marginPath = UIBezierPath()
+					marginPath.lineWidth = 8
+					marginPath.moveToPoint(actualPoint)
+					marginPath.addLineToPoint(previousPoint)
+					marginPath.addLineToPoint(center)
+					marginPath.closePath()
+					combo.marginPath = marginPath
+				}
 				// Connected path
 				let centerPath = UIBezierPath()
 				centerPath.lineWidth = 8
 				centerPath.moveToPoint(actualPoint)
 				centerPath.addLineToPoint(center)
+				combo.centerPath = centerPath
 				// Selected circle
 				let selectedCircle = UIBezierPath(arcCenter: actualPoint, radius: 10, startAngle: 0, endAngle: CGFloat(2*M_PI), clockwise: true)
 				selectedCircle.lineWidth = 2
-				
-				combo.centerPath = centerPath
 				combo.selectedCircle = selectedCircle
 			}
 			pathCombo.append(combo)
