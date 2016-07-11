@@ -65,8 +65,8 @@ class InteractiveView: InteractiveGraphView {
 	private struct PathCombo {
 		/// Left conneting path
 		var marginPath: UIBezierPath?
-		var selectedCircle: UIBezierPath!
-		var centerPath: UIBezierPath!
+		var selectedCircle: UIBezierPath?
+		var centerPath: UIBezierPath?
 	}
 	
 	init(frame: CGRect, selectedScores: [Int]) {
@@ -90,8 +90,8 @@ class InteractiveView: InteractiveGraphView {
 		UIColor.orangeColor().colorWithAlphaComponent(0.75).setFill()
 		// Draw selected path and margin path
 		for combo in selectedPath {
-			if combo.centerPath != nil {
-				combo.centerPath.stroke()
+			if let centerPath = combo.centerPath {
+				centerPath.stroke()
 			}
 			if let marginPath = combo.marginPath {
 				marginPath.fill()
@@ -100,8 +100,8 @@ class InteractiveView: InteractiveGraphView {
 		// Draw selected circle
 		UIColor.blackColor().setFill()
 		for combo in selectedPath {
-			if combo.selectedCircle != nil {
-				combo.selectedCircle.fill()
+			if let selectedCircle = combo.selectedCircle {
+				selectedCircle.fill()
 			}
 		}
 	}
