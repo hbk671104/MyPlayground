@@ -83,12 +83,12 @@ class InteractiveView: InteractiveGraphView {
 	}
 	
 	override func drawRect(rect: CGRect) {
-		UIColor.orangeColor().colorWithAlphaComponent(0.75).setStroke()
-		UIColor.orangeColor().colorWithAlphaComponent(0.75).setFill()
-		
 		// Convert
 		selectedPath = self.convertIntoSelectedPath(selectedScores, definedPoints: definedPoints)
-		// Draw selected path
+		
+		UIColor.orangeColor().colorWithAlphaComponent(0.75).setStroke()
+		UIColor.orangeColor().colorWithAlphaComponent(0.75).setFill()
+		// Draw selected path and margin path
 		for combo in selectedPath {
 			if combo.centerPath != nil {
 				combo.centerPath.stroke()
@@ -97,6 +97,7 @@ class InteractiveView: InteractiveGraphView {
 				marginPath.fill()
 			}
 		}
+		// Draw selected circle
 		UIColor.blackColor().setFill()
 		for combo in selectedPath {
 			if combo.selectedCircle != nil {
